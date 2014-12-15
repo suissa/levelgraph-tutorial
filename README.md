@@ -54,10 +54,17 @@ var db = levelgraph("yourdb");
 
 ###Inserindo
 
-Inserir uma conexão(tripla) é tão simples quanto:
+Inserir uma conexão(tripla) é super simples, para isso usaremos a função `put`:
+
+```
+db.put(tripla, callback);
+```
+
+Como vemos no exemplo abaixo:
 
 ```
 var triple = { sujeito: "a", predicado: "b", objeto: "c" };
+
 db.put(triple, function(err) {
   if(err) console.log('ERROR: ', err);
 
@@ -83,6 +90,7 @@ var triple =
   , objeto: 'c'
   , novaPropriedade: 'teste'
   };
+
 db.put(triple, function(err) {
   if(err) console.log('ERROR: ', err);
 
@@ -104,6 +112,7 @@ var triple =
   , predicado: 'ensina'
   , objeto: {linguagem: 'Javascript'}
   };
+
 db.put(triple, function(err) {
   if(err) console.log('ERROR: ', err);
 
@@ -125,8 +134,6 @@ db.get({ subject: "a" }, function(err, list) {
   // Faz algo
 });
 ```
-
-
 
 Vamos inserir várias triplas e depois listá-las:
 
@@ -214,37 +221,34 @@ db.get({predicate: "estuda", object: "Javascript"}, function(err, list) {
 Ele também suporta streams, vamos ver um exemplo de como buscar os amigos entre uma pessoa e outra:
 
 ```
-var levelgraph = require("levelgraph");
-
-db = levelgraph("graph-teste");
 db.put([{
-  subject: "matteo",
-  predicate: "friend",
-  object: "daniele"
+  subject: "Suissa",
+  predicate: "segue",
+  object: "Galvão"
 }, {
-  subject: "daniele",
-  predicate: "friend",
-  object: "matteo"
+  subject: "Galvão",
+  predicate: "segue",
+  object: "Suissa"
 }, {
-  subject: "daniele",
-  predicate: "friend",
-  object: "marco"
+  subject: "Galvão",
+  predicate: "segue",
+  object: "Eminetto"
 }, {
-  subject: "lucio",
-  predicate: "friend",
-  object: "matteo"
+  subject: "Piaz",
+  predicate: "segue",
+  object: "Suissa"
 }, {
-  subject: "lucio",
-  predicate: "friend",
-  object: "marco"
+  subject: "Piaz",
+  predicate: "segue",
+  object: "Eminetto"
 }, {
-  subject: "marco",
-  predicate: "friend",
-  object: "davide"
+  subject: "Eminetto",
+  predicate: "segue",
+  object: "Duodraco"
 }], function () {
 
   var stream = db.searchStream([{
-    subject: "matteo",
+    subject: "Suissa",
     predicate: "friend",
     object: db.v("x")
   }, {
@@ -254,23 +258,24 @@ db.put([{
   }, {
     subject: db.v("y"),
     predicate: "friend",
-    object: "davide"
+    object: "Duodraco"
   }]);
 
   stream.on("data", function(data) {
-    console.log(data);
+    console.log('Caminho percorrido: ', data);
   });
 });
 ```
 
-Nesse caso a ordem de amizades é a seguinte:
+Para entendermos quem segue quem fiz esse exemplo visual:
 
-matteo -> daniele -> marco -> davide
+![](https://cldup.com/VstqbL8F0Q.png)
 
-E a resposta é:
+Essa busca está procurando qual o caminho que preciso percorrer entre quem **Suissa** segue até chegar em quem segue o **Duodraco**, qualuqer semelhança com aquela feature *Pessoas que você possa conhecer* não é mera coincidência.
 
-![](https://cldup.com/Bs04jakdGc.png)
+Rodando essa busca no terminal temos:
 
+![](https://cldup.com/EW6eY_Gt7K.png)
 
 
 
