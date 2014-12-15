@@ -277,12 +277,124 @@ Rodando essa busca no terminal temos:
 
 ![](https://cldup.com/EW6eY_Gt7K.png)
 
+###Caminhando
+
+Essa API de caminhada é baseada no [Gremlin](http://markorodriguez.com/2011/06/15/graph-pattern-matching-with-gremlin-1-1/).
+
+Para termos maior facilidade nas buscas que retornam um caminho podemos usar as funções `archIn` e `archOut`.
+
+Re-usando aquele exemplo do ensina/estuda Javascript, para sabermos todas pessoas que estudam Javascript basta fazermos:
+
+```
+db.nav("Javascript")
+  .archIn("estuda")
+  .solutions(function(err, results) {
+  // prints:
+  // [ { x0: 'Loki' }, { x0: 'Odin' }, { x0: 'Thor' } ]
+  console.log(results);
+});
+```
+
+Mas vamos voltar ao nosso exemplo dos seguidores, a busca mais simples é achar as pessoas que seguem o **Suissa**:
+
+```
+db.nav("Suissa")
+  .archIn("segue")
+  .solutions(function(err, results) {
+  // prints:
+  // [ { x0: 'Galvão' }, { x0: 'Piaz' } ]
+  console.log(results);
+});
+```
+
+Então a função `archIn` é a responsável pela predicado que chega na entidade setada em `db.nav()`.
+
+Logo a função `archOut` ´a responsável pelo predicado que sai da entidade, então vamos buscar quem o **Suissa** segue:
+
+```
+db.nav("Suissa")
+  .archOut("segue")
+  .solutions(function(err, results) {
+  // prints:
+  // [ { x0: 'Galvão' } ]
+  console.log(results);
+});
+```
+
+E se quisermos saber os seguidores dos seguidores do **Suissa**?
+
+Muito fácil, como visto abaixo:
+
+```
+db.nav("Suissa")
+  .archOut("segue")
+  .archOut("segue")
+  .solutions(function(err, results) {
+  // prints:
+  // [ { x0: 'Galvão', x1: 'Eminetto' },
+  // { x0: 'Galvão', x1: 'Suissa' } ]
+  console.log(results);
+});
+```
+
+Só precisamos adicionar outra chamada para `.archOut("segue")` e assim sucessivamente para aumentar o grau da busca.
+
+Ai você se pergunta: **o que que acontece se eu adicionar um archIn ali no final?**
+
+Ótima pergunta! Vamos ver então:
+
+```
+db.nav("Suissa")
+  .archOut("segue")
+  .archOut("segue")
+  .archIn("segue")
+  .solutions(function(err, results) {
+  // prints:
+  // [ { x0: 'Galvão', x1: 'Eminetto', x2: 'Galvão' },
+  // { x0: 'Galvão', x1: 'Eminetto', x2: 'Piaz' },
+  // { x0: 'Galvão', x1: 'Suissa', x2: 'Galvão' },
+  // { x0: 'Galvão', x1: 'Suissa', x2: 'Piaz' } ]
+  console.log(results);
+});
+```
+
+Nesse caso nossa busca é o seguinte: 
+
+- inicie em Suissa
+- busque um objeto que ele se conecte via "segue" // Galvão
+- busque um objeto que ele se conecte via "segue" // Eminetto
+- busque um objeto que ele receba conexão via "segue" // Galvão, Piaz
+
+Destrinchando oresultado um pouco mais:
+
+```
+{ x0: 'Galvão', x1: 'Eminetto', x2: 'Galvão' }
+```
+
+> Suissa segue Galvão, Galvão segue Eminetto, Galvão é seguido por Suissa
 
 
+```
+{ x0: 'Galvão', x1: 'Eminetto', x2: 'Piaz' }
+```
+
+> Suissa segue Galvão, Galvão segue Eminetto, Eminetto é seguido por Piaz
 
 
+```
+{ x0: 'Galvão', x1: 'Suissa', x2: 'Galvão' }
+```
+
+> Suissa segue Galvão, Galvão segue Suissa, Suissa é seguido por Galvão
 
 
+```
+{ x0: 'Galvão', x1: 'Suissa', x2: 'Piaz' }
+```
+
+> Suissa segue Galvão, Galvão segue Suissa, Suissa é seguido por Piaz
+
+Creio que deu para notar que ele vai caminhando e aplicando a busca, como vimos na última busca que é um `archIn` nosso *"caminhador"* para na entidada achada no último `archOut` e executa o `archIn` por isso achando por quem essa entidade **é seguido**.
 
 
 
