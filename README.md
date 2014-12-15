@@ -19,7 +19,7 @@ A imagem a cima é um exemplo de um grafo onde temos:
 > Suissa(A) ensina(C) Javscript(B).
 > João(A) estuda(C) Javascript(B).
 
-Caso queira saber mais sobre [Grafos entre aqui](http://pt.wikipedia.org/wiki/Teoria_dos_grafos).
+Isso se chama **tripla**. caso queira saber mais sobre [Grafos entre aqui](http://pt.wikipedia.org/wiki/Teoria_dos_grafos).
 
 ##Por que usar?
 
@@ -33,8 +33,178 @@ Pegando nosso exemplo acima, vamos ver algumas buscas que podemos fazer em um ba
 > Busque todas pessoas que estudam Javascript ensinado por Suissa
 > Busque todas pessoas que ensinam Javascript
 
-Isso apenas com uma conexão imagine com diversas
+Isso apenas com uma conexão, imagine com diversas.
 
 ##Como usar?
+
+Vamos começar instalando ele localmente na nossa aplicação.
+
+```
+npm install levelgraph --save
+```
+
+Ou para usar no navegador você pode baixar o [levelgraph.min.js](https://github.com/mcollina/levelgraph/blob/master/build/levelgraph.min.js).
+
+Para iniciar uma database é bem simples:
+
+```
+var levelgraph = require("levelgraph"); // não precisa no navegador
+var db = levelgraph("yourdb");
+```
+
+###Inserindo
+
+Inserir uma conexão(tripla) é tão simples quanto:
+
+```
+var triple = { sujeito: "a", predicado: "b", objeto: "c" };
+db.put(triple, function(err) {
+  if(err) console.log('ERROR: ', err);
+
+  console.log('INSERIU');
+  db.get({ sujeito: "a" }, function(err, list) {
+    console.log(list);
+  });
+});
+```
+
+E quando rodamos no terminal recebemos a seguinte saída:
+
+![log do objeto inserido](https://cldup.com/Wx8e7yJ8q0.png)
+
+####Propriedades
+
+Podemos adicionar mais propriedades na tripla dessa forma:
+
+```
+var triple =
+  { sujeito: 'a'
+  , predicado: 'b'
+  , objeto: 'c'
+  , novaPropriedade: 'teste'
+  };
+db.put(triple, function(err) {
+  if(err) console.log('ERROR: ', err);
+
+  console.log('INSERIU');
+  db.get({ sujeito: 'a' }, function(err, list) {
+    console.log(list);
+  });
+});
+
+```
+
+![](https://cldup.com/to9uAItuB0.png)
+
+Além disso podemos criar objetos no sujeito, predicado e/ou objeto, como vemos abaixo:
+
+```
+var triple =
+  { sujeito: {name: 'Suissa'}
+  , predicado: 'ensina'
+  , objeto: {linguagem: 'Javascript'}
+  };
+db.put(triple, function(err) {
+  if(err) console.log('ERROR: ', err);
+
+  console.log('INSERIU');
+  db.get({ sujeito: {name: 'Suissa'} }, function(err, list) {
+    console.log(list);
+  });
+});
+```
+
+![](https://cldup.com/EeNY1xA7v0.png)
+
+###Consultando
+
+Bom como vimos no exemplo anterior usamos a função `get`:
+
+```
+db.get({ subject: "a" }, function(err, list) {
+  // Faz algo
+});
+```
+
+
+
+
+###Streams
+
+Ele também suporta streams, vamos ver um exemplo de como buscar os amigos entre uma pessoa e outra:
+
+```
+var levelgraph = require("levelgraph");
+
+db = levelgraph("graph-teste");
+db.put([{
+  subject: "matteo",
+  predicate: "friend",
+  object: "daniele"
+}, {
+  subject: "daniele",
+  predicate: "friend",
+  object: "matteo"
+}, {
+  subject: "daniele",
+  predicate: "friend",
+  object: "marco"
+}, {
+  subject: "lucio",
+  predicate: "friend",
+  object: "matteo"
+}, {
+  subject: "lucio",
+  predicate: "friend",
+  object: "marco"
+}, {
+  subject: "marco",
+  predicate: "friend",
+  object: "davide"
+}], function () {
+
+  var stream = db.searchStream([{
+    subject: "matteo",
+    predicate: "friend",
+    object: db.v("x")
+  }, {
+    subject: db.v("x"),
+    predicate: "friend",
+    object: db.v("y")
+  }, {
+    subject: db.v("y"),
+    predicate: "friend",
+    object: "davide"
+  }]);
+
+  stream.on("data", function(data) {
+    console.log(data);
+  });
+});
+```
+
+Nesse caso a ordem de amizades é a seguinte:
+
+matteo -> daniele -> marco -> davide
+
+E a resposta é:
+
+![](https://cldup.com/Bs04jakdGc.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
