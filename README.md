@@ -128,6 +128,86 @@ db.get({ subject: "a" }, function(err, list) {
 
 
 
+Vamos inserir várias triplas e depois listá-las:
+
+```
+var triples =
+  [ { subject: "Suissa"
+    , predicate: "ensina"
+    , object: "Javascript"
+    }
+  , { subject: "Odin"
+    , predicate: "estuda"
+    , object: "Javascript"
+    }
+  , { subject: "Thor"
+    , predicate: "estuda"
+    , object: "Javascript"
+    }
+  , { subject: "Loki"
+    , predicate: "estuda"
+    , object: "Javascript"
+    }
+  , { subject: "Heimdall"
+    , predicate: "estuda"
+    , object: "PHP"
+    }
+  , { subject: "Frey"
+    , predicate: "estuda"
+    , object: "PHP"
+    }
+  , { subject: "Galvão"
+    , predicate: "ensina"
+    , object: "PHP"
+    }
+  ]
+  ;
+
+db.put(triples, function(err) {
+  if(err) console.log('ERROR: ', err);
+  console.log('INSERIU');
+  db.get({}, function(err, list) {
+    console.log(list);
+  });
+});
+```
+
+![](https://cldup.com/QeaXDKYqSV.png)
+
+Vamos consultar quais são nossos professores:
+
+```
+db.get({predicate: "ensina"}, function(err, list) {
+  console.log(list);
+});
+```
+
+![Listagem dos professores](https://cldup.com/jUQd-yys3R.png)
+
+E quais são nossos alunos:
+
+```
+db.get({predicate: "estuda"}, function(err, list) {
+  console.log(list);
+});
+
+```
+
+![Listagem dos alunos](https://cldup.com/T7CfIhSDaN.png)
+
+Legal mas e como que eu posso buscar todos que estudam Javascript?
+
+Tão simples quanto a busca anterior, só precisamos passar mais um atributo no objeto da query:
+
+```
+db.get({predicate: "estuda", object: "Javascript"}, function(err, list) {
+  console.log(list);
+});
+```
+
+![Listagem dos alunos que estudam Javascript](https://cldup.com/qw2_kPgVju.png)
+
+
 
 ###Streams
 
